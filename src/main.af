@@ -1,0 +1,570 @@
+/*
+ * program name: ClientList
+ * description: Create and maintain a list of clients
+ * auther: DeForestt Thompson
+ */
+
+.root "head"
+.needs <io>
+.needs <std>
+.needs <strings>
+.needs <files>
+.needs <Collections>
+.needs "Client.gs"
+.needs "Project.gs"
+
+/*
+ * function name:	loadData
+ * description:		load the data from the clientFile
+ * patameters:		LinkedList clients
+ * returns:			0 on succsess 1 on fail
+ */
+int loadData(LinkedList clients){
+	// Open the clientFile
+	File clientFile = openFile("ClientsData");
+	if (clientFile == #0){
+		clientFile = createFile("ClientsData");
+		//Write the header row;
+		clientFile.write("Header, 0,;");
+		clientFile.write("~");
+		if (clientFile == #0){ return 1; };
+		clientFile.close();
+		clientFile = openFile("ClientsData");
+	};
+
+	// Read header file
+	char 300 buffer;
+	char null = ascii(0);
+	int eof = clientFile.read(?buffer, ';', '~');
+	eof = clientFile.read(?buffer, ';', '~');
+
+	while(eof != 1){
+		Client cli = cliFromSerial(?buffer);
+		clients.append(cli);
+		eof = clientFile.read(?buffer, ';', '~');
+	};
+
+	// Close the file
+	clientFile.close();
+
+	return 0;
+};
+
+/*
+ * function name: 	loadProjects
+ * description:		load the data from the projectFile
+ * patameters:		LinkedList clients
+ * returns:			0 on succsess 1 on fail
+ */
+int loadProjects(LinkedList projects){
+	// Open the projectFile
+	File projectFile = openFile("ProjectsData");
+	if (projectFile == #0){
+		projectFile = createFile("ProjectsData");
+		//Write the header row;
+		projectFile.write("Header, 0,;");
+		projectFile.write("~");
+		if (projectFile == #0){ return 1; };
+		projectFile.close();
+		projectFile = openFile("ProjectsData");
+	};
+
+	// Read header file
+	char 300 buffer;
+	char null = ascii(0);
+	int eof = projectFile.read(?buffer, ';', '~');
+	eof = projectFile.read(?buffer, ';', '~');
+
+	while(eof != 1){
+		Project proj = projFromSerial(?buffer);
+		projects.append(proj);
+		eof = projectFile.read(?buffer, ';', '~');
+	};
+
+	// Close the file
+	projectFile.close();
+
+	return 0;
+};
+
+/*
+ * function name:	saveData
+ * description:		save the data to the clientFile
+ * patameters:		LinkedList clients
+ * returns:			0 on succsess 1 on fail
+ */
+int saveData(LinkedList clients){
+	// Create the file
+	File clientFile = createFile("ClientsData");
+	if (clientFile == #0){ return 1; };
+	// Write the header row;
+	clientFile.write("Header, 0,;");
+
+	// Write the data
+	int i = 0;
+	int size = clients.size();
+	while(i < size){
+		char 300 buffer;
+		Client cli = clients.get(i);
+		cli.serialize(?buffer);
+		clientFile.write(?buffer);
+		//clear out the buffer
+		str_concat("", "", ?buffer);
+		i = i + 1;
+	};
+	clientFile.write("~");
+	clientFile.close();
+	return 0;
+};
+
+/*
+ * function name:	saveProjects
+ * description:		save the data to the projectFile
+ * patameters:		LinkedList clients
+ * returns:			0 on succsess 1 on fail
+ */
+int saveProjects(LinkedList projects){
+	// Create the file
+	File projectFile = createFile("ProjectsData");
+	if (projectFile == #0){ return 1; };
+	// Write the header row;
+	projectFile.write("Header, 0,;");
+
+	// Write the data
+	int i = 0;
+	int size = projects.size();
+	while(i < size){
+		char 1000 buffer;
+		Project proj = projects.get(i);
+		proj.serialize(?buffer);
+		projectFile.write(?buffer);
+		//clear out the buffer
+		str_concat("", "", ?buffer);
+		i = i + 1;
+	};
+	projectFile.write("~");
+	projectFile.close();
+	return 0;
+};
+
+/*
+ * function name: showAll
+ * description:		show all the clients with id and balance
+ * patameters:		LinkedList clients
+ * returns:			0 on succsess 1 on fail
+ */
+int showAll(LinkedList clients){
+	int i = 0;
+	int size = clients.size();
+	// Print the header
+	print("ID:\tName:\t\tBalance:\n");
+	while(i < size){
+		Client cli = clients.get(i);
+		adr name = cli.getName();
+		int balance = cli.getBalance();
+		int id = cli.getId();
+		printInt(id); print(":\t"); print(name); print("\t"); printInt(balance); print("\n");
+		i = i + 1;
+	};
+	return 0;
+};
+
+/*
+ * function name:	showClient
+ * description:		show the client with all fields
+ * patameters:		LinkedList clients int id
+ * returns:			0 on succsess 1 on fail
+ */
+int showClient(LinkedList clients, int id){
+	int i = 0;
+	int size = clients.size();
+	// print the header
+	print("ID:\tName:\tEmail:\tphone\taddress\tBalance:\n");
+	while(i < size){
+		Client cli = clients.get(i);
+		int cliId = cli.getId();
+		if (cliId == id){
+			adr name = cli.getName();
+			adr email = cli.getEmail();
+			adr phone = cli.getPhone();
+			adr address = cli.getAddress();
+			int balance = cli.getBalance();
+			printInt(id); print(":\t"); print(name); print("\t"); print(email); print("\t"); print(phone); print("\t"); print(address); print("\t"); printInt(balance); print("\n");
+			return 0;
+		};
+		i = i + 1;
+	};
+	return 1;
+};
+
+/*
+ * function name:	accountsReceivable
+ * description:		show the total bill for all clients
+ * patameters:		LinkedList clients
+ * returns:			accounts receivable
+ */
+int accoutsReceivable(LinkedList clients){
+	int i = 0;
+	int size = clients.size();
+	int total = 0;
+	while(i < size){
+		Client cli = clients.get(i);
+		int balance = cli.getBalance();
+		if (balance > 0){
+			total = total + balance;
+		};
+		i = i + 1;
+	};
+	return total;
+};
+
+/*
+ * function name:	AddClient
+ * description:		add a client to the list
+ * patameters:		LinkedList clients, Client cli
+ * returns:			0 on succsess 1 on fail
+ */
+int AddClient(LinkedList clients, Client cli){
+	clients.append(cli);
+	return 0;
+};
+
+/*
+ * function name:	billClient
+ * description:		bill a client
+ * patameters:		LinkedList clients, int id, int amount
+ * returns:			0 on succsess 1 on fail
+ */
+int billClient(LinkedList clients, int id, int amount){
+	int i = 0;
+	int size = clients.size();
+	while(i < size){
+		Client cli = clients.get(i);
+		int cliId = cli.getId();
+		if (cliId == id){
+			cli.bill(amount);
+			return 0;
+		};
+		i = i + 1;
+	};
+	return 1;
+};
+
+/*
+ * function name:	creditClient
+ * description:		add a payment credit to a client account
+ * patameters:		LinkedList clients, int id, int amount
+ * returns:			0 on succsess 1 on fail
+ */
+int creditClient(LinkedList clients, int id, int amount){
+	int i = 0;
+	int size = clients.size();
+	while(i < size){
+		Client cli = clients.get(i);
+		int cliId = cli.getId();
+		if (cliId == id){
+			cli.pay(amount);
+			return 0;
+		};
+		i = i + 1;
+	};
+	return 1;
+};
+
+/*
+ * function name:	initProject
+ * description:		initiate a new project
+ * patameters:		LinkedList projects, Project proj, int id
+ * returns:			0 on succsess 1 on fail
+ */
+int initProject(LinkedList projects, Project proj){
+	// Add the project to the list
+	projects.append(proj);
+	return 0;
+};
+
+/*
+ * function names:	showProjects
+ * description:		show all of the projects for a given client
+ * patameters:		LinkedList projects, int ClientId
+ * returns:			0 on succsess 1 on fail
+ */
+int showProjects(LinkedList projects, int ClientId){
+	int i = 0;
+	int size = projects.size();
+	int found = 1;
+	// print the header
+	print("ID:\tClient:\tName:\tStatus:\tDescription:\n");
+	while(i < size){
+		Project proj = projects.get(i);
+		int projClientId = proj.getClientId();
+		if (projClientId == ClientId){
+			int projId = proj.getId();
+			adr projName = proj.getName();
+			int projStatus = proj.getStatus();
+			adr projDesc = proj.getDescription();
+			printInt(projId); print(":\t"); printInt(projClientId); print("\t"); print(projName); print("\t"); printInt(projStatus); print("\t"); print(projDesc); print("\n");
+			found = 0;
+		};
+		i = i + 1;
+	};
+	return found;
+};
+
+int main(int argc, adr args){
+	// Check for command line arguments
+	if (argc < 2){
+		print("Usage: ClientList [Command] [Arguments]\n");
+		print("Commands:\n");
+		print("\tadd\t\tAdd a client\n");
+		print("\tlist\t\tList all clients\n");
+		print("\tbill\t\tBill a client\n");
+		print("\tcredit\t\tCredit a client\n");
+		print("\tinfo\t\tShow all info on a client\n");
+		print("\trecive\t\tShow the total acounts receivable\n");
+		print("\tinit\t\tInitialize a new project\n");
+		print("\tprojects\t\tList all projects for a client\n");
+		return 1;
+	};
+
+	// check for the command
+	adr argPtr = #0;
+	argPtr = args;
+	argPtr = argPtr + 8;
+	adr command = argPtr as adr;
+
+	// Case for add
+	int comp = str_comp(command, "add");
+	if(comp == 1){
+		// Create the list
+		LinkedList clients = newList();
+		loadData(clients);
+
+		// Check for the arguments
+		if (argc < 6){
+			print("Usage: ClientList add [Name] [Address] [Phone] [Email]\n");
+			return 1;
+		};
+		// Get the arguments
+		argPtr = argPtr + 8;
+		adr name = argPtr as adr;
+		argPtr = argPtr + 8;
+		adr address = argPtr as adr;
+		argPtr = argPtr + 8;
+		adr phone = argPtr as adr;
+		argPtr = argPtr + 8;
+		adr email = argPtr as adr;
+
+		// id is the size of the list
+		int id = clients.size();
+		// Create the client
+		Client cli = newClient(id, name, address, phone, email);
+		clients.append(cli);
+		saveData(clients);
+		return 0;
+	};
+
+	// Case for list
+	comp = str_comp(command, "list");
+	if(comp == 1){
+		// Create the list
+		clients = newList();
+		loadData(clients);
+		showAll(clients);
+		return 0;
+	};
+
+	// Case for bill
+	comp = str_comp(command, "bill");
+	if(comp == 1){
+		// Create the list
+		clients = newList();
+		loadData(clients);
+
+		// Check for the arguments
+		if (argc < 4){
+			print("Usage: ClientList bill [Id] [Amount]\n");
+			return 1;
+		};
+
+		// Get the arguments
+		argPtr = argPtr + 8;
+		adr strId = argPtr as adr;
+		argPtr = argPtr + 8;
+		adr strAmount = argPtr as adr;
+
+		// Convert the arguments
+		id = str_toInt(strId);
+		int amount = str_toInt(strAmount);
+
+
+		// Bill the client
+		int result = billClient(clients, id, amount);
+		if (result == 1){
+			print("Client not found\n");
+			return 1;
+		};
+		saveData(clients);
+		return 0;
+	};
+
+	// Case for credit
+	comp = str_comp(command, "credit");
+	if(comp == 1){
+		// Create the list
+		clients = newList();
+		loadData(clients);
+
+		// Check for the arguments
+		if (argc < 4){
+			print("Usage: ClientList credit [Id] [Amount]\n");
+			return 1;
+		};
+
+		// Get the arguments
+		argPtr = argPtr + 8;
+		strId = argPtr as adr;
+		argPtr = argPtr + 8;
+		strAmount = argPtr as adr;
+
+		// Convert the arguments
+		id = str_toInt(strId);
+		amount = str_toInt(strAmount);
+
+		// Credit the client
+		result = creditClient(clients, id, amount);
+		if (result == 1){
+			print("Client not found\n");
+			return 1;
+		};
+		saveData(clients);
+		return 0;
+	};
+
+	// Case for info
+	comp = str_comp(command, "info");
+	if(comp == 1){
+		// Create the list
+		clients = newList();
+		loadData(clients);
+
+		// Check for the arguments
+		if (argc < 3){
+			print("Usage: ClientList info [Id]\n");
+			return 1;
+		};
+
+		// Get the arguments
+		argPtr = argPtr + 8;
+		strId = argPtr as adr;
+
+		// Convert the arguments
+		id = str_toInt(strId);
+
+		// Show the client info
+		result = showClient(clients, id);
+		if (result == 1){
+			print("Client not found\n");
+			return 1;
+		};
+		return 0;
+	};
+
+	// Case for recive
+	comp = str_comp(command, "recive");
+	if(comp == 1){
+		// Create the list
+		clients = newList();
+		loadData(clients);
+
+		// Check for the arguments
+		if (argc < 2){
+			print("Usage: ClientList recive\n");
+			return 1;
+		};
+
+		// Calculate the total
+		int total = accoutsReceivable(clients);
+		print("Total Acounts Receivable:\t"); printInt(total); print("\n");
+
+		saveData(clients);
+		return 0;
+	};
+
+	// Case for init
+	comp = str_comp(command, "init");
+	if(comp == 1){
+		// Create the list
+		LinkedList projects = newList();
+		loadProjects(projects);
+
+		// Check for the arguments
+		if (argc < 5){
+			print("Usage: ClientList [client id] [name] [description]\n");
+			return 1;
+		};
+
+		// Get the arguments
+		argPtr = argPtr + 8;
+		strId = argPtr as adr;
+		argPtr = argPtr + 8;
+		name = argPtr as adr;
+		argPtr = argPtr + 8;
+		adr description = argPtr as adr;
+		
+		// Convert the arguments
+		int cliId = str_toInt(strId);
+
+		// id is the size of the list
+		id = projects.size();
+
+		// Create the project
+		Project proj = newProject(id, cliId, name, description);
+		initProject(projects, proj);
+		saveProjects(projects);
+		return 0;
+	};
+
+	// Case for projects
+	comp = str_comp(command, "projects");
+	if(comp == 1){
+		// Create the list
+		projects = newList();
+		loadProjects(projects);
+
+		// Check for the arguments
+		if (argc < 3){
+			print("Usage: ClientList projects [Client Id]\n");
+			return 1;
+		};
+
+		// Get the arguments
+		argPtr = argPtr + 8;
+		strId = argPtr as adr;
+
+		// Convert the arguments
+		id = str_toInt(strId);
+
+		// Show the Projects for the client
+		result = showProjects(projects, id);
+		if (result == 1){
+			return 1;
+		};
+		return 0;
+	};
+
+	// Case for Invalid
+	print("Usage: ClientList [Command] [Arguments]\n");
+	print("Commands:\n");
+	print("\tadd\t\tAdd a client\n");
+	print("\tlist\t\tList all clients\n");
+	print("\tbill\t\tBill a client\n");
+	print("\tcredit\t\tCredit a client\n");
+	print("\tinfo\t\tShow all info on a client\n");
+	print("\trecive\t\tShow the total acounts receivable\n");
+	print("\tinit\t\tInitialize a new project\n");
+	print("\tprojects\tShow all projects for a client\n");
+
+
+	return 1;
+};

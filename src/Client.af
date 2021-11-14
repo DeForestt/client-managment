@@ -1,0 +1,204 @@
+.root "head"
+.needs <std>
+.needs <strings>
+.needs <io>
+.needs "Client.gs"
+
+/*
+ * function name: newClient
+ * description: dynamicly creates a new client
+ * parameters: id, name, address, phone, email
+ * returns: client
+ */
+Client newClient(int id, adr name, adr address, adr phone, adr email){
+    Client client = malloc(Client);
+    client.init(id, name, address, phone, email);
+    return client;
+};
+
+/*
+ * function name:   clientFromSerial
+ * description:     creat a new client from a serialized object
+ * parameters:      adr input
+ * returns:         none
+ */
+
+Client cliFromSerial(adr input){
+    Client cli = malloc(Client);
+    cli.deSerialize(input);
+    return cli;
+};
+
+/*
+ * function name:   init@Client
+ * description:     initializes the client data
+ * parameters:      
+ */
+public int init@Client(int id, adr name, adr address, adr phone, adr email){
+    my.id = id;
+    my.name = name;
+    my.address = address;
+    my.phone = phone;
+    my.email = email;
+    my.balance = 0;
+    return 0;
+};
+
+// Getters
+    public int getId@Client(){
+        return my.id;
+    };
+
+    public adr getName@Client(){
+        return my.name;
+    };
+
+    public adr getAddress@Client(){
+        return my.address;
+    };
+    
+    public adr getPhone@Client(){
+        return my.phone;
+    };
+
+    public adr getEmail@Client(){
+        return my.email;
+    };
+
+    //The Resulting in will need to be redefined as a float using 'pointer redefinition'
+    public int getBalance@Client(){
+        int a;
+        a = my.balance;
+        return a;
+    };
+
+/*
+ * function name:   deSerialize@Client
+ * description:     set the values based on a string
+ * parameters:      adr input
+ * returns:         none
+ */
+int deSerialize@Client(adr input){
+    adr buffer = malloc(300);
+    byte 50 trash;
+    str_split(input, '~', buffer, ?trash);
+
+    // get the id as the first line
+    adr idString = malloc(7);
+    str_split(buffer, ',', idString, buffer);
+    int id = str_toInt(idString);
+
+    // get the name from the second line;
+    adr name = malloc(50);
+    str_split(buffer, ',', name, buffer);
+
+    // get the adress
+    adr address = malloc(50);
+    str_split(buffer, ',', address, buffer);
+
+    // Get the Phone Number
+    adr phone = malloc(50);
+    str_split(buffer, ',', phone, buffer);
+
+    // Get the Email
+    adr email = malloc(50);
+    str_split(buffer, ',', email, buffer);
+
+    // get the balance as an int
+    adr balanceString = malloc(10);
+    str_split(buffer, ',', balanceString, buffer);
+    int balance = str_toInt(balanceString);
+
+    my.id = id;
+    my.name = name;
+    my.address = address;
+    my.phone = phone;
+    my.email = email;
+    my.balance = balance;
+    free(buffer);
+    
+    return 0;
+};
+
+/*
+ * function name:   serialize@Client
+ * description:     serialize the client data into a string
+ * parameters:      adr buffer
+ * returns:         0 on success
+ */
+int serialize@Client(adr buffer){
+    //convert ID to string
+    adr idString = malloc(7);
+    int id;
+    id = my.id;
+    int_toString(id, idString);
+    if(id == 0){
+        str_concat("0", "", idString);
+    };
+
+    //Convert Balance to string
+    adr balanceString = malloc(7);
+    int balance;
+    balance = my.balance;
+    int_toString(balance, balanceString);
+    if(balance == 0){
+        str_concat("0", "", balanceString);
+    };
+
+    //Create the string
+    str_concat("", "", buffer);
+    str_concat(buffer, idString, buffer);
+    str_concat(buffer, ",", buffer);
+    adr name;
+    name = my.name;
+    str_concat(buffer, name, buffer);
+    str_concat(buffer, ",", buffer);
+    adr address;
+    address = my.address;
+    str_concat(buffer, address, buffer);
+    str_concat(buffer, ",", buffer);
+    adr phone;
+    phone = my.phone;
+    str_concat(buffer, phone, buffer);
+    str_concat(buffer, ",", buffer);
+    adr email;
+    email = my.email;
+    str_concat(buffer, email, buffer);
+    str_concat(buffer, ",", buffer);
+    str_concat(buffer, balanceString, buffer);
+    str_concat(buffer, ",", buffer);
+    str_concat(buffer, ";", buffer);
+
+    //free everything we malloced
+    free(idString);
+    free(balanceString);
+    return 0;
+};
+
+/*
+ * function name:   bill@Client
+ * description:     adds to the client's balance
+ * parameters:      int amount
+ * returns:         0 on success
+ */
+int bill@Client(int amount){
+    int balance;
+    balance = my.balance;
+    balance = balance + amount;
+    my.balance = balance;
+    return 0;
+};
+
+/*
+ * function name:   pay@Client
+ * description:     subtracts from the client's balance
+ * parameters:      int amount
+ * returns:         0 on success
+ */
+int pay@Client(int amount){
+    int balance;
+    balance = my.balance;
+    balance = balance - amount;
+    my.balance = balance;
+    return 0;
+};

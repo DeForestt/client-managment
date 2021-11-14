@@ -1,0 +1,193 @@
+.needs <std>
+.needs <strings>
+.root "head"
+.needs "Project.gs"
+
+/*
+ * function name: init@project
+ * description:   initialize the project class
+ * parameters:    adr name, adr description, int status, int clientId, int id
+ * return value:  0
+ */
+int init@Project(int id, int clientId, adr name, adr description){
+    my.id = id;
+    my.clientId = clientId;
+    my.name = name;
+    my.description = description;
+    my.status = 1;
+    return 0;
+};
+
+// getters
+    /*
+    * function name: getId@Project
+    * description:   get the id of the project
+    * parameters:    none
+    * return value:  int id
+    */
+    int getId@Project(){
+        return my.id;
+    };
+
+    /*
+    * function name: geName@Project
+    * description:   get the name of the project
+    * parameters:    none
+    * return value:  adr name
+    */
+    adr getName@Project(){
+        return my.name;
+    };
+
+    /*
+    * function name: getDescription@Project
+    * description:   get the description of the project
+    * parameters:    none
+    * return value:  adr description
+    */
+    adr getDescription@Project(){
+        return my.description;
+    };
+
+    /*
+    * function name: getStatus@Project
+    * description:   get the status of the project
+    * parameters:    none
+    * return value:  int status
+    */
+    int getStatus@Project(){
+        return my.status;
+    };
+
+    /*
+    * function name: getClientId@Project
+    * description:   get the client id of the project
+    * parameters:    none
+    * return value:  int clientId
+    */
+    int getClientId@Project(){
+        return my.clientId;
+    };
+
+/*
+ * function name: serialize@Project
+ * description:   serialize the project class
+ * parameters:    adr buffer
+ * return value:  0
+ */
+int serialize@Project(adr buffer){
+    //Convert id to string
+    adr idString = malloc(7);
+    int id;
+    id = my.id;
+    int_toString(id, idString);
+    if(id == 0){
+        str_concat("0", "", idString);
+    };
+
+    //Convert clientId to string
+    adr clientIdString = malloc(7);
+    int clientId;
+    clientId = my.clientId;
+    int_toString(clientId, clientIdString);
+    if(clientId == 0){
+        str_concat("0", "", clientIdString);
+    };
+
+    //Convert status to string
+    adr statusString = malloc(7);
+    int status;
+    status = my.status;
+    int_toString(status, statusString);
+    if(status == 0){
+        str_concat("0", "", statusString);
+    };
+
+    str_concat(idString, ",", buffer);
+    
+    adr name;
+    name = my.name;
+    str_concat(buffer, name, buffer);
+    str_concat(buffer, ",", buffer);
+    
+    adr description;
+    description = my.description;
+    str_concat(buffer, description, buffer);
+    str_concat(buffer, ",", buffer);
+
+    str_concat(buffer, statusString, buffer);
+    str_concat(buffer, ",", buffer);
+    
+    str_concat(buffer, clientIdString, buffer);
+    str_concat(buffer, ",", buffer);
+
+    str_concat(buffer, ";", buffer);
+    return 0;
+};
+
+/*
+ * function name: deserialize@Project
+ * description:   deserialize the project class
+ * parameters:    adr input
+ * return value:  0
+ */
+int deserialize@Project(adr input){
+    adr buffer = malloc(100);
+    byte 50 trash;
+    str_split(input, '~', buffer, ?trash);
+
+    // get the id as the first line
+    adr idString = malloc(7);
+    str_split(buffer, ',', idString, buffer);
+    int id = str_toInt(idString);
+
+    // get the name as the second line
+    adr name = malloc(50);
+    str_split(buffer, ',', name, buffer);
+
+    // get the description as the third line
+    adr description = malloc(350);
+    str_split(buffer, ',', description, buffer);
+
+    // get the status as the fourth line
+    adr statusString = malloc(7);
+    str_split(buffer, ',', statusString, buffer);
+    int status = str_toInt(statusString);
+
+    // get the clientId as the fifth line
+    adr clientIdString = malloc(7);
+    str_split(buffer, ',', clientIdString, buffer);
+    int clientId = str_toInt(clientIdString);
+
+    my.id = id;
+    my.name = name;
+    my.description = description;
+    my.status = status;
+    my.clientId = clientId;
+
+    return 0;
+};
+
+/*
+ * function name: projFromSerial
+ * description:   create a new project from a serialized project
+ * parameters:    adr input
+ * return value:  adr project
+ */
+Project projFromSerial(adr input){
+    Project project = malloc(Project);
+    project.deserialize(input);
+    return project;
+};
+
+/*
+ * function name: newProject
+ * description:   create a new project
+ * parameters:    adr name, adr description, int status, int clientId
+ * return value:  Project project
+ */
+Project newProject(int id, int clientId, adr name, adr description){
+    Project project = malloc(Project);
+    project.init(id, clientId, name, description);
+    return project;
+};
