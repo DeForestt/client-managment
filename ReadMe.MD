@@ -1,10 +1,10 @@
-Usage: ClientList [Command] [Arguments]
-Commands:
-        add             Add a client
-        list            List all clients
-        bill            Bill a client
-        credit          Credit a client
-        info            Show all info on a client
-        recive          Show the total acounts receivable
-        init            Initialize a new project
-        projects        List all projects for a client
+Usage: ClientList [Command] [Arguments]<rb>
+Commands:<br>
+        add             Add a client<br>
+        list            List all clients<br>
+        bill            Bill a client<br>
+        credit          Credit a client<br>
+        info            Show all info on a client<br>
+        recive          Show the total acounts receivable<br>
+        init            Initialize a new project<br>
+        projects        List all projects for a client<br>
